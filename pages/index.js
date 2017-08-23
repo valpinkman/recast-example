@@ -1,16 +1,10 @@
 import { Component } from 'react';
-import trianglify from 'trianglify';
-// import Action from '../ui/components/action/action';
-// import Write from '../ui/components/icons/write';
-import Avatar from '../ui/components/avatar/avatar';
-// import Chat from '../ui/components/chat/chat';
-// import Form from '../ui/components/form/form';
+import Background from '../ui/containers/background/background';
+import Chat from '../ui/components/chat/chat';
 import Title from '../ui/components/title/title';
 import Container from '../ui/components/container/container';
 import Storage from '../services/db';
-
-const COLORS_X = ['#fff', '#EF6F6E', '#E9225E'];
-const COLORS_Y = ['#003B67', '#0088DE', '#29B7F6', '#fff', '#EF6F6E'];
+import Recast from '../services/recast';
 
 /**
  *
@@ -23,42 +17,29 @@ class Index extends Component {
     super(...args);
 
     this.state = {
-      conversations: [],
+      conversation: { id: 0, messages: [] },
       username: undefined,
-      selected: undefined,
-      active: false,
-      get chat() {
-        return this.conversations.find(el => el.id === this.selected);
-      }
+      loading: false
     };
 
-    this.generatePattern = this.generatePattern.bind(this);
-    this.onSubmitUsername = this.handleSubmitUsername.bind(this);
+    this.handleSubmitUsername = this.handleSubmitUsername.bind(this);
     this.setUsername = this.setUsername.bind(this);
+    this.handleChatSubmit = this.handleChatSubmit.bind(this);
   }
 
   async componentDidMount() {
-    // Create background and binds method to resize event
-    this.generatePattern();
-    window.addEventListener('resize', this.generatePattern);
-
-    // Look into storage if there is a username of conversations already setup
-    const conversations = await Storage.getAllConversations();
+    // Look into storage if there is a username already setup
     const username = await Storage.getUsername();
+    const conversation = await Storage.getConversation();
 
-    // If there are conversations, load them into the state
-    if (conversations && conversations.length) {
-      this.setState({ conversations });
-      this.setUsername(username);
-
-      // If there are no conversations but a username
-    } else if (username) {
-      this.setUsername(username);
+    // If there are no conversations but a username
+    if (username) {
+      if (conversation) {
+        this.setState({ username, conversation });
+      } else {
+        this.setState({ username });
+      }
     }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.generatePattern);
   }
 
   handleSubmitUsername(e) {
@@ -69,41 +50,25 @@ class Index extends Component {
     }
   }
 
-  async setUsername(username) {
-    await Storage.setUsername(username);
+  async setUsername(name) {
+    const username = await Storage.setUsername(name);
     this.setState({ username });
   }
 
-  generatePattern() {
-    const { pattern } = this;
-    if (pattern) {
-      const { width, height } = pattern.getBoundingClientRect();
-      const triangle = trianglify({
-        width,
-        height,
-        /* eslint-disable */
-        y_colors: COLORS_Y,
-        x_colors: COLORS_X,
-        variance: 0.75,
-        cell_size: 25,
-        color_space: 'rgb'
-        /* eslint-enable */
-      });
+  async handleChatSubmit(text) {
+    const conversation = await Storage.getConversation();
+    let conversationToken;
 
-      const canvas = pattern.querySelector('canvas');
-
-      // Check if there is already a canvas
-      if (canvas) {
-        pattern.removeChild(canvas);
-      }
-
-      pattern.appendChild(triangle.canvas());
-      this.forceUpdate();
+    if (conversation && conversation.length) {
+      conversationToken = conversation.id;
     }
+
+    const json = await Recast.converse(text, conversationToken);
+    console.log(json);
   }
 
   render() {
-    const { username } = this.state;
+    const { username, conversation } = this.state;
 
     return (
       <div className="index">
@@ -121,15 +86,6 @@ class Index extends Component {
             flex-direction: column;
           }
 
-          .pattern {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: -10;
-          }
-
           .action {
             position: fixed;
             bottom: 30px;
@@ -139,29 +95,15 @@ class Index extends Component {
           p {
             text-align: center;
           }
-
-          {/* .chat {
-            display: flex;
-            flex-direction: column;
-            width: 100vw;
-            height: 100vh;
-          } */}
         `}
         </style>
-        <div
-          ref={comp => {
-            this.pattern = comp;
-          }}
-          className="pattern"
-        />
+        <Background/>
         <Container>
           <Title color="#fff">Dimension C137{username ? ` - ${username}` : ''}</Title>
-
         </Container>
         {username ?
           <Container>
-            <Avatar username={username}/>
-            <span>{username}</span>
+            <Chat conversation={conversation} onSubmit={this.handleChatSubmit}/>
           </Container> :
           <Container>
             <p>
@@ -180,17 +122,6 @@ class Index extends Component {
             </form>
           </Container>
         }
-        {/* <Action onClick={() => {}}>
-          <Write />
-        </Action>
-        <section className="chat">
-           <Chat active={chat}/>
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          />
-        </section> */}
       </div>
     );
   }

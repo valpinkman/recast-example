@@ -4,18 +4,15 @@ import storage from 'localforage';
 //
 // Message = {
 //   user: string,
+//   me: boolean,
 //   text: string,
 //   posted: timestamp
 // };
 //
 // Conversation = {
 //   id: number,
-//   user: string,
-//   receiver: string,
 //   messages: [Message]
 // };
-
-let conversationId = storage.getItem('lastSavedId') || 0;
 
 /**
  *
@@ -25,45 +22,36 @@ let conversationId = storage.getItem('lastSavedId') || 0;
  * storage is avaible to fake a database
  */
 class Storage {
-  static setUsername(username) {
+  static async setUsername(username) {
     console.log('Storage > setUsername()', username);
-    return storage.setItem('username', username);
+    await storage.setItem('username', username);
+    return Storage.getUsername();
   }
 
-  static getUsername() {
+  static async getUsername() {
     return storage.getItem('username');
   }
 
-  static async setConversation(message = {}, id = undefined) {
-    if (id) {
-      const item = await storage.getItem(id);
-      if (item) {
-        await storage.setItem(id, item.concat(message));
-        return id;
-      }
+  static async updateConversation(message = {}) {
+    const item = await storage.getItem('conversation');
+
+    if (item) {
+      await storage.setItem('conversation', item.messages.concat(message));
+      return Storage.getConversation();
     }
 
-    await storage.setItem(conversationId++, [].concat(message));
-    storage.setItem('lastSavedId', conversationId);
-    return conversationId;
+    const payload = {
+      id: message.conversationToken || 0,
+      messages: [].concat(message)
+    };
+
+    await storage.setItem('conversation', payload);
+    return Storage.getConversation();
   }
 
-  static async getConversation(id) {
-    if (id) {
-      const item = await storage.getItem(id);
-      return item;
-    }
-  }
-
-  static async getAllConversations(conversations = []) {
-    const list = conversations.length ? conversations : await storage.keys();
-
-    return list.map(async id => {
-      const item = await Storage.getConversation(id);
-      if (item) {
-        return item;
-      }
-    });
+  static async getConversation() {
+    const conversation = await storage.getItem('conversation');
+    return conversation;
   }
 }
 
