@@ -1,5 +1,3 @@
-import storage from 'localforage';
-
 // MODELS
 //
 // Message = {
@@ -7,10 +5,12 @@ import storage from 'localforage';
 //   me: boolean,
 //   text: string,
 //   posted: timestamp
+//   conversationToken: string,
+//   type?: string
 // };
 //
 // Conversation = {
-//   id: number,
+//   id: string,
 //   messages: [Message]
 // };
 
@@ -22,37 +22,42 @@ import storage from 'localforage';
  * storage is avaible to fake a database
  */
 class Storage {
-  static async setUsername(username) {
-    console.log('Storage > setUsername()', username);
-    await storage.setItem('username', username);
-    return Storage.getUsername();
+  constructor() {
+    this.username = undefined;
+    this.conversation = undefined;
   }
 
-  static async getUsername() {
-    return storage.getItem('username');
+  async setUsername(username) {
+    this.username = username;
+    return this.username;
   }
 
-  static async updateConversation(message = {}) {
-    const item = await storage.getItem('conversation');
+  async getUsername() {
+    return this.username;
+  }
 
-    if (item) {
-      await storage.setItem('conversation', item.messages.concat(message));
-      return Storage.getConversation();
+  async updateConversation(message = {}, reset) {
+    const item = this.conversation;
+    let id;
+
+    if (reset) {
+      id = message.conversationToken;
+    } else {
+      id = item && item.id ? item.id : message.conversationToken;
     }
 
-    const payload = {
-      id: message.conversationToken || 0,
-      messages: [].concat(message)
+    const conversation = {
+      id,
+      messages: item ? item.messages.concat(message) : [].concat(message)
     };
 
-    await storage.setItem('conversation', payload);
-    return Storage.getConversation();
+    this.conversation = conversation;
+    return this.conversation;
   }
 
-  static async getConversation() {
-    const conversation = await storage.getItem('conversation');
-    return conversation;
+  async getConversation() {
+    return this.conversation;
   }
 }
 
-export default Storage;
+export default new Storage();

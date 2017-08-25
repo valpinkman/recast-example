@@ -10,11 +10,6 @@ class Form extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  // componentDidMount() {
-  //   const { onSubmit } = this.props;
-  //   onSubmit('yolo');
-  // }
-
   handleSubmit(evt) {
     evt.preventDefault();
     const { onSubmit } = this.props;
@@ -43,7 +38,6 @@ class Form extends Component {
             flex-direction: row;
             justify-content: flex-start;
             align-items: center;
-            padding: 20px;
           }
 
           form > * {
@@ -52,11 +46,17 @@ class Form extends Component {
 
           input {
             flex: 1;
-            padding: 10px 0;
+            padding: 10px;
             border: none;
-            border-bottom: 2px solid grey;
+            border-radius: 3px;
             outline: none;
-            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: background-color 250ms ease-out;
+            font-size: 16px;
+          }
+
+          input:hover, input:focus {
+            background-color: rgba(255, 255, 255, 0.5);
           }
         `}
         </style>
@@ -73,7 +73,7 @@ class Form extends Component {
             type="text"
           />
           <Action onClick={this.handleSubmit}>
-            <Write/>
+            <Write width="22px"/>
           </Action>
         </form>
       </section>

@@ -1,6 +1,7 @@
 const Recastai = require('recastai').default;
+const token = require('../config').token;
 
-const client = new Recastai('a901658c9e280500da50a8f58181f9f9').request;
+const client = new Recastai(token).request;
 
 const converse = async (text, conversationToken = null) => {
   let res;
@@ -15,7 +16,7 @@ const converse = async (text, conversationToken = null) => {
   } catch (err) {
     console.log(err);
   }
-}
+};
 
 const handler = async (req, res) => {
   const { text, conversationToken } = req.body;

@@ -7,19 +7,21 @@ const Action = ({ onClick, children }) => (
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 50px;
-        height: 50px;
+        width: 36px;
+        height: 36px;
         border: 0;
         border-radius: 50%;
         outline: 0;
         color: white;
         background-color: #e9225e;
         cursor: pointer;
-        transition: background-color 250ms ease-out;
+        box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.3);
+        transition: background-color 250ms ease-out, box-shadow 250ms ease-out;
       }
 
       button:hover {
-        background-color: #ef6f6e;
+        background-color: #d1114b;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
       }
     `}
     </style>
