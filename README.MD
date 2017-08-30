@@ -21,4 +21,4 @@ Inside `./config.js` there is a variable with the access token. Replacing it wil
 
 ## TECHNOS 
 
-Built with Next.js, React and Recast.ai.
+Built with Next.js, React, firebase and Recast.ai

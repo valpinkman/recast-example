@@ -6,7 +6,7 @@ const firebaseConfig = {
   authDomain: 'recast-example.firebaseapp.com',
   databaseURL: 'https://recast-example.firebaseio.com',
   projectId: 'recast-example',
-  storageBucket: '',
+  storageBucket: 'recast-example.appspot.com',
   messagingSenderId: '1051235780212'
 };
 
