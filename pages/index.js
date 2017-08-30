@@ -1,5 +1,4 @@
 import { Component } from 'react';
-import RickAndMorty from 'rick-and-morty';
 import Background from '../ui/containers/background/background';
 import Chat from '../ui/components/chat/chat';
 import Title from '../ui/components/title/title';
@@ -7,8 +6,6 @@ import Container from '../ui/components/container/container';
 import Storage from '../services/db';
 import Recast from '../services/recast';
 import * as models from '../utils/models';
-import * as INTENTS from '../constants/intents';
-import getAvatar from '../services/avatar';
 
 /**
  *
@@ -21,51 +18,60 @@ class Index extends Component {
     super(...args);
 
     this.state = {
-      conversation: { id: undefined, messages: [] },
+      conversation: {
+        id: undefined,
+        messages: [],
+        greeted: false,
+        username: undefined
+      },
       username: undefined,
       loading: false
     };
 
     this.handleSubmitUsername = this.handleSubmitUsername.bind(this);
     this.handleChatSubmit = this.handleChatSubmit.bind(this);
-    this.handleGreeting = this.handleGreeting.bind(this);
-    this.handleGif = this.handleGif.bind(this);
-    this.handleAvatar = this.handleAvatar.bind(this);
-    this.handleOther = this.handleOther.bind(this);
+    this.handleResponse = this.handleResponse.bind(this);
     this.setUsername = this.setUsername.bind(this);
   }
 
-  async componentDidMount() {
-    // Look into storage if there is a username already setup
-    const username = await Storage.getUsername();
-    const conversation = await Storage.getConversation();
+  updateOnChange(ref) {
+    ref.child('username').on('value', snapshot => {
+      this.setState({ username: snapshot.val(), conversation: { ...this.state.conversation, username: snapshot.val() } });
+    });
 
-    // If there are no conversations but a username
-    if (username) {
-      if (conversation) {
-        this.setState({ username, conversation });
-      } else {
-        this.setState({ username });
-      }
-    }
+    ref.child('greeted').on('value', snapshot => {
+      const greeted = snapshot.val();
+      this.setState({ conversation: { ...this.state.conversation, greeted } });
+    });
+
+    ref.child('messages').limitToLast(2).on('child_added', snapshot => {
+      const message = snapshot.val();
+      const messages = this.state.conversation.messages.concat(message);
+      this.setState({ conversation: { ...this.state.conversation, messages } });
+    });
+
+    ref.child('id').on('value', snapshot => {
+      const id = snapshot.val();
+      this.setState({ conversation: { ...this.state.conversation, id } });
+    });
   }
 
-  handleSubmitUsername(e) {
+  async handleSubmitUsername(e) {
     e.preventDefault();
     // NOTE: add an intermediary step to confirm name
     if (this.username.value) {
-      this.setUsername(this.username.value);
+      await this.setUsername(this.username.value);
     }
   }
 
-  async setUsername(name) {
-    const username = await Storage.setUsername(name);
-    this.setState({ username });
+  async setUsername(username) {
+    const ref = await Storage.setUsername(username);
+    this.updateOnChange(ref);
   }
 
   async handleChatSubmit(text) {
     const { username } = this.state;
-    let conversation = await Storage.getConversation();
+    const conversation = await Storage.getConversation(username);
     let conversationToken;
 
     if (conversation) {
@@ -73,95 +79,17 @@ class Index extends Component {
     }
 
     const message = models.userMessage(username, true, text, conversationToken);
-    conversation = await Storage.updateConversation(message);
-    this.setState({ conversation, loading: true });
+    await Storage.updateConversation(username, message);
 
-    const json = await Recast.converse(text, conversationToken);
-    this.handleIntent(json);
+    const messages = await Recast.converse(text, username, conversationToken);
+    messages.forEach(async mess =>  {
+      await Storage.updateConversation(username, mess);
+    });
   }
 
-  handleIntent(message) {
-    if (message.action && message.action.slug) {
-      switch (message.action.slug) {
-        case INTENTS.GENERATE_AVATAR:
-          this.handleAvatar(message);
-          break;
-        case INTENTS.RICK_AND_MORTY:
-          this.handleGif(message);
-          break;
-        case INTENTS.GREETINGS:
-          this.handleGreeting(message);
-          break;
-        default:
-          this.handleOther(message);
-          break;
-      }
-    }
-  }
-
-  async handleGreeting(json) {
-    const { replies, conversationToken } = json;
-    let conversation = await Storage.getConversation();
-    const message = models.botMessage(replies[0], conversationToken);
-
-    conversation = await Storage.updateConversation(message, true);
-    this.setState({ conversation });
-  }
-
-  async handleAvatar(json) {
-    const { replies, conversationToken, action, entities } = json;
-    let conversation = await Storage.getConversation();
-    const token = conversation.id ? conversation.id : conversationToken;
-    let message;
-
-    if (action.done) {
-      const { pseudo } = entities;
-      if (pseudo && pseudo.length) {
-        const [psd] = pseudo;
-        const { value } = psd;
-        const avatar = getAvatar(value);
-        message = models.botMessage(avatar, token, 'image');
-        conversation = await Storage.updateConversation(message);
-        this.setState({ conversation });
-
-        conversation = await Storage.updateConversation(replies[0], conversation.id);
-        setTimeout(() => {
-          this.setState({ conversation });
-        }, 500);
-      }
-    } else {
-      message = models.botMessage(replies[0], token);
-      conversation = await Storage.updateConversation(message);
-      this.setState({ conversation });
-    }
-  }
-
-  async handleGif(json) {
-    const { replies, conversationToken } = json;
-    let conversation = await Storage.getConversation();
-    const token = conversation.id ? conversation.id : conversationToken;
-    const gif = RickAndMorty.random();
-    let message = models.botMessage(gif, token, 'image');
-
-    conversation = await Storage.updateConversation(message);
-    this.setState({ conversation, loading: false });
-
-    message = models.botMessage(replies[0], conversation.id);
-    conversation = await Storage.updateConversation(message);
-
-    setTimeout(() => {
-      this.setState({ conversation });
-    }, 500);
-  }
-
-  async handleOther(json) {
-    const { replies, conversationToken } = json;
-    let conversation = await Storage.getConversation();
-    const token = conversation.id ? conversation.id : conversationToken;
-    const message = models.botMessage(replies[0], token);
-
-    conversation = await Storage.updateConversation(message);
-    this.setState({ conversation });
+  async handleResponse(message) {
+    const { username } = this.state;
+    await Storage.updateConversation(username, message);
   }
 
   render() {
@@ -220,7 +148,7 @@ class Index extends Component {
         <Background/>
         <Container>
           <Title color="#fff">
-           Welcom to Dimension C-137{username ? ` ${username}` : ''}
+           Welcome to Dimension C-137{username ? ` ${username}` : ''}
           </Title>
         </Container>
         {username ?

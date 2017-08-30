@@ -1,4 +1,27 @@
-export const userMessage = (user, me, text, conversationToken) => ({
+/**
+*
+* @model Token
+* @type String | Undefined
+*
+*
+* @model Message
+* @type Message = {
+*   user: {String},
+*   me: {Boolean}
+*   text: {String}
+*   posted: {Number}
+*   conversationToken: {Token}
+*   type?: {String}
+* }
+*
+* @model Conversation
+* @type Converstion = {
+*   id: {Token}
+*   messages: {[Message]}
+* }
+*/
+
+const userMessage = (user, me, text, conversationToken = null) => ({
   user,
   me,
   text,
@@ -6,7 +29,7 @@ export const userMessage = (user, me, text, conversationToken) => ({
   conversationToken
 });
 
-export const botMessage = (message, conversationToken, type) => ({
+const botMessage = (message, conversationToken, type) => ({
   user: 'Rick Sanchez',
   me: false,
   text: message,
@@ -14,4 +37,9 @@ export const botMessage = (message, conversationToken, type) => ({
   conversationToken,
   type
 });
+
+module.exports = {
+  botMessage,
+  userMessage
+};
 

@@ -33,6 +33,15 @@ const Chat = ({ conversation, onSubmit }) => {
           align-items: flex-start;
           overflow: scroll;
         }
+
+        ul::-webkit-scrollbar {
+          width: 0px;
+        }
+
+        ul::-webkit-scrollbar-track-piece {
+          background-color: transparent
+          -webkit-border-radius: 6px;
+        }
       `}
       </style>
       <ul>
@@ -40,7 +49,7 @@ const Chat = ({ conversation, onSubmit }) => {
           conversation.messages.map((message, index, arr) => {
             const next = arr[index + 1];
             const showAvatar = next ? message.user !== next.user : true;
-            return <Message key={message.posted} message={message} showAvatar={showAvatar}/>;
+            return <Message key={`${message.posted}${message.text}`} message={message} showAvatar={showAvatar}/>;
           })
         }
       </ul>

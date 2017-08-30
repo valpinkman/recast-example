@@ -7,4 +7,4 @@
 const getAvatar = (username, initials = '') =>
   `https://avatar.tobi.sh/${username}.svg${initials ? `?text=${initials}` : ''}`;
 
-export default getAvatar;
+module.exports = getAvatar;

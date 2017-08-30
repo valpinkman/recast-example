@@ -1,7 +1,7 @@
 class Recast {
-  static async converse(text, conversationToken = null) {
+  static async converse(text, username, conversationToken = null) {
     try {
-      const payload = { text, conversationToken };
+      const payload = { text, username, conversationToken };
       const body = await JSON.stringify(payload);
       const res = await fetch('/converse', {
         body,

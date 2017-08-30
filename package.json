@@ -12,9 +12,10 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.4",
+    "firebase": "^4.3.0",
     "isomorphic-fetch": "^2.2.1",
     "localforage": "^1.5.0",
-    "next": "^3.0.6",
+    "next": "^3.2.0",
     "prop-types": "^15.5.10",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
@@ -24,11 +25,11 @@
     "trianglify": "^1.1.0"
   },
   "devDependencies": {
-    "eslint": "^4.3.0",
+    "eslint": "^4.5.0",
     "eslint-config-xo": "^0.18.2",
     "eslint-config-xo-react": "^0.13.0",
     "eslint-config-xo-space": "^0.16.0",
-    "eslint-plugin-react": "^7.1.0",
+    "eslint-plugin-react": "^7.3.0",
     "eslint-plugin-unicorn": "^2.1.2",
     "xo": "^0.18.2"
   },
@@ -63,7 +64,8 @@
       "React",
       "fetch",
       "document",
-      "window"
+      "window",
+      "localStorage"
     ]
   }
 }

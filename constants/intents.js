@@ -1,4 +1,11 @@
-export const GREETINGS = 'greetings';
-export const RICK_AND_MORTY = 'rick-and-morty-gif';
-export const GENERATE_AVATAR = 'generate-avatar';
-export const GOODBYE = 'goodbye';
+const GREETINGS = 'greetings';
+const RICK_AND_MORTY = 'rick-and-morty-gif';
+const GENERATE_AVATAR = 'generate-avatar';
+const GOODBYE = 'goodbye';
+
+module.exports = {
+  GENERATE_AVATAR,
+  GREETINGS,
+  RICK_AND_MORTY,
+  GOODBYE
+};

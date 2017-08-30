@@ -1,5 +1,6 @@
 const Recastai = require('recastai').default;
 const token = require('../config').token;
+const handleIntents = require('./../services/intents');
 
 const client = new Recastai(token).request;
 
@@ -19,8 +20,9 @@ const converse = async (text, conversationToken = null) => {
 };
 
 const handler = async (req, res) => {
-  const { text, conversationToken } = req.body;
-  const message = await converse(text, conversationToken);
+  const { text, conversationToken, username } = req.body;
+  const intent = await converse(text, conversationToken);
+  const message = await handleIntents(intent, username);
   res.json(message);
 };
 

@@ -157,6 +157,6 @@ Message.propTypes = {
 
 Message.defaultProps = {
   showAvatar: true
-}
+};
 
 export default Message;

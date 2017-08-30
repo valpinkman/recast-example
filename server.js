@@ -3,7 +3,7 @@ require('isomorphic-fetch');
 const express = require('express');
 const bodyParser = require('body-parser');
 const next = require('next');
-const recastHanlder = require('./handlers/recast');
+const recastHandler = require('./handlers/recast');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -17,7 +17,7 @@ app.prepare()
     server.use(bodyParser.urlencoded({ extended: true }));
 
     server.post('/converse', (req, res) => {
-      return recastHanlder(req, res);
+      return recastHandler(req, res);
     });
 
     server.all('*', (req, res) => {
